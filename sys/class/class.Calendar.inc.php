@@ -185,7 +185,9 @@
 
 			$html .= "\n\t</ul>\n\n";
 
-			return $html;
+            $admin = $this->_adminGeneralOptions();
+
+			return $html. $admin;
 		}
 
 		private function _loadEventById($id)
@@ -226,10 +228,11 @@
 			$end = date('g:ia',strtotime($event->end));
 
 		//	var_dump($event);
+        $admin = $this->_adminEntryOptions($id);
 
 			return "<h2>$event->title</h2>" 
 					. "\n\t<p class=\"dates\">$date,$start&mdash;$end</p>"
-					. "\n\t<p>$event->description</p>";
+					. "\n\t<p>$event->description</p>$admin";
 		}
 
         /**
@@ -239,7 +242,7 @@
 
         public function displayForm()
         {
-           $_POST['event_id']=1;
+           //$_POST['event_id']=1;
            
 
            if( isset($_POST['event_id']))
@@ -253,7 +256,7 @@
             }
 
             $submit = "Create a New Event";
-            //  若传入活动ID 则载入相应的活动数据   
+            //$event= NULL;
             if(!empty($id))
             {
                 $event = $this->_loadEventById($id);
@@ -280,22 +283,202 @@
                 <textarea name="event_description" id="event_description">$event->description</textarea>
                 <input type="hidden" name="event_id" value="$event->id"/>
                 <input type="hidden" name="token" value="$_SESSION[token]"/>
-                <input type="hidden" name="action" value="event_edit"/>
+                <input type="hidden" name="action" value="event_edit"/><br/>
                 <input type="submit" name="event_submit" value="$submit"/>
                 or <a href="./">cancel</a>
                </fieldset>
                </form>
 HTML;
-     
+                }
+                else
+                {
+           return <<<HTML
+                 <form action="assets/inc/process.inc.php" method="post">
+                <fieldset>
+                <legend>{$submit}</legend>
+                <label for="event_title">Event Title</label>
+                <input type="text" name="event_title" id="event_title" value="" />
+                <label for="event_start">Start Time</label>
+                <input type="text" name="event_start" id="event_start" value=""/>
+                <label for="event_end">End Time</label>
+                <input type="text" name="event_end" id="event_end" value=""/>
+                <label for="event_description">Event Description</label>
+                <textarea name="event_description" id="event_description"></textarea>
+                <input type="hidden" name="event_id" value=""/>
+                <input type="hidden" name="token" value="$_SESSION[token]"/>
+                <input type="hidden" name="action" value="event_edit"/><br/>
+                <input type="submit" name="event_submit" value="$submit"/>
+                or <a href="./">cancel</a>
+               </fieldset>
+               </form>
+HTML;
+                    
+                }
          /** <<<HTML 起始这一行后面不能有空格
            *  HTML 结束这一行必须没有任何其他字符，除了最后的；  也不能缩进
            *这是文档句法 又称为定界符号
            *
            */
             } ///这里书上写的不好。。。。没有保证如果不传$id 则会warning的！！
+        
+    /*
+    **验证表单，保存/更新活动信息
+    **
+    **/
+    public function processForm()
+    {
+        if( $_POST['action']!='event_edit') 
+        {
+            return "The Method processForm was accessd incorrectly";
         }
+        //html转义
+        //$title = htmlspecialchars($_POST['event_title'],ENT_COMPAT,'GB2312');
+       //$desc = htmlspecialchars($_POST['event_description'],ENT_QUOTES);
+        $start = htmlentities($_POST['event_start'],ENT_QUOTES);
+        $end = htmlentities($_POST['event_end'],ENT_QUOTES);
+        //如果提交数据没有活动ID 就创建一个新活动
+        //var_dump($_POST);
+        $title = addslashes($_POST['event_title']);
+        //echo $title."\n";
+        $desc = addslashes($_POST['event_description']);
+        
+        if( empty($_POST['event_id']))
+        {
+            $sql = "INSERT INTO cal
+                    (event_title,event_desc,event_start,event_end)
+                    VALUES
+                        (:title,:description,:start,:end)";
+            //echo "dd";*/
+          //  $sql = "INSERT INTO cal (event_title,event_desc,event_start,event_end) VALUES ('$title','$desc','$start','$end')";
+            //echo $sql;
+
+            //exit;
+        }
+        else
+        {
+            $id = (int) $_POST['event_id'];
+            $sql ="UPDATE cal
+                    SET
+                        event_title=:title,
+                        event_desc=:description,
+                        event_start=:start,
+                        event_end=:end
+                        WHERE event_id=$id";
+                       // echo $sql;exit;
+        }
+        //绑定参数查询
+        try
+        {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(":title",$title, PDO::PARAM_STR);
+            $stmt->bindParam(":description",$desc, PDO::PARAM_STR);
+            $stmt->bindParam(":start",$start, PDO::PARAM_STR);
+            $stmt->bindParam(":end",$end, PDO::PARAM_STR);
+            $stmt->execute();
+            $stmt->closeCursor();
+            return TRUE;
+        }
+        catch(Exception $e)
+        {
+            return $e->getMessage();
+        }
+    }
+   
+    /*
+    **确认一个活动是否被删除并执行之
+    *
+    **/
+    public function confirmDelete($id)
+    {
+        if(empty($id)){ return NULL;}
+
+        //确保这个数是个整数
+        $id = preg_replace('/[^0-9]/','',$id);
+
+        if( isset($_POST['confirm_delete']) && $_POST['token']==$_SESSION['token'])
+        {
+       // echo $id;
+            if( $_POST['confirm_delete']=="Yes, Delete It")
+            {
+                $sql = "DELETE FROM cal WHERE event_id =:id LIMIT 1";
+               // echo $sql;
+               // exit;
+            try
+            {
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam(":id",$id,PDO::PARAM_INT);
+                $stmt->execute();
+                $stmt->closeCursor();
+                header("Location: ./");
+                return;
+            }
+            catch(Exception $e)
+            {
+                return $e->getMessage();
+            }
+             }
+             else
+             {
+                //echo "11";exit;
+                 header("Location: ./");
+                 return;
+             }
+        }
+        //若表单未提交，显示它
+        $event = $this->_loadEventById($id);
+
+        if( !is_object($event)){header("Location： ./");}
 
 
+        
+        return <<<CONFIRM_DELETE
+        <form action="confirmdelete.php" method="post">
+        <h2>
+            你确定删除 "$event->title"?
+        </h2>
+        <p>There is <strong>no undo</strong> if you continue</p>
+        <p>
+            <input type="submit" name="confirm_delete" value="Yes, Delete It"/>
+            <input type="submit" name="confirm_delete" value="Nope! Just Kidding!"/>
+            <input type="hidden" name="event_id" value="$event->id"/>
 
-	}
+            <input type="hidden" name="token" value="$_SESSION[token]"/>
+        </p>
+        </form>
+CONFIRM_DELETE;
+
+
+    }
+    
+
+    //添加管理链接
+    private function _adminGeneralOptions()
+    {
+        //显示管理页面
+        return <<<ADMIN_OPTIONS
+        <a href="admin.php" class="admin">+ Add a New Event</a>
+ADMIN_OPTIONS;
+    }
+    //给给定活动ID生成修改和删除按钮
+    private function _adminEntryOptions($id)
+    {
+        return <<<ADMIN_OPTIONS
+        <div class="admin-options">
+        <form action="admin.php" method="post">
+        <p>
+        <input type="submit" name="edit_event" value="Edit This Event"/>
+        <input type="hidden" name="event_id" value="$id"/>
+        </p>
+        </form>
+        <form action="confirmdelete.php" method="post">
+        <p>
+        <input type="submit" name="delete_event" value="Delete This Event"/>
+        <input type="hidden" name="event_id" value="$id"/>
+        </p>
+        </form>
+        </div>
+ADMIN_OPTIONS;
+    }
+    
+}
 ?>
