@@ -3,7 +3,7 @@
 
     $page_title = "Add/Edit Event";
 
-    $css_files = array("style.css");
+    $css_files = array("style.css","admin.css");
 
     include_once 'assets/common/header.inc.php';
 

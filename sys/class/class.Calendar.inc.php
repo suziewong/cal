@@ -239,7 +239,7 @@
 
         public function displayForm()
         {
-         //  $_POST['event_id']=1;
+           $_POST['event_id']=1;
            
 
            if( isset($_POST['event_id']))
