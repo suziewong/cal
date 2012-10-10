@@ -1,5 +1,5 @@
 <?php
-    if(isset($_POST['event_id']))
+    if(isset($_POST['event_id']) && isset($_SESSION['user']))
     {
         $id = (int) $_POST['event_id'];
     }

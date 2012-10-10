@@ -20,6 +20,9 @@
 	echo $cal->buildCalendar();
 ?>
 </div>
+<p>
+<?php echo isset($_SESSION['user'])? "Logged In!":"Logged Out!";?>
+</p>
 <?php
 	include_once 'assets/common/footer.inc.php';
 ?>

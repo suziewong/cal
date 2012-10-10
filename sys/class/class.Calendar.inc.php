@@ -454,14 +454,32 @@ CONFIRM_DELETE;
     //添加管理链接
     private function _adminGeneralOptions()
     {
+        if( isset($_SESSION['user']))
+        {
         //显示管理页面
         return <<<ADMIN_OPTIONS
         <a href="admin.php" class="admin">+ Add a New Event</a>
+        <form action="assets/inc/process.inc.php" method="post">
+        <div>
+            <input type="submit" value="Log Out" class="admin">
+            <input type="hidden" name="token" value="$_SESSION[token]">
+            <input type="hidden" name="action" value="user_logout">
+        </div>
+        </form>
 ADMIN_OPTIONS;
+        }
+        else
+        {
+            return <<<ADMIN_OPTIONS
+            <a href="login.php">Log In</a>
+ADMIN_OPTIONS;
+        }
     }
     //给给定活动ID生成修改和删除按钮
     private function _adminEntryOptions($id)
     {
+        if( isset($_SESSION['user']))
+        {
         return <<<ADMIN_OPTIONS
         <div class="admin-options">
         <form action="admin.php" method="post">
@@ -478,6 +496,11 @@ ADMIN_OPTIONS;
         </form>
         </div>
 ADMIN_OPTIONS;
+        }
+        else
+        {
+            return NULL;
+        }
     }
     
 }
