@@ -11,7 +11,7 @@
 		echo "<pre>".var_dump($cal)."</pre>";
 	}*/
 	$page_title = "Events Calendar";
-	$css_files = array('style.css','admin.css');
+	$css_files = array('style.css','admin.css','ajax.css');
 	include_once 'assets/common/header.inc.php';
 ?>
 <div id='content'>
