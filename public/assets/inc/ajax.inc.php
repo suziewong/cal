@@ -33,7 +33,7 @@ $actions = array(
             )
         );
     //确保传入防止跨站的攻击记号并且action存在与这个查找数组之中
-   // echo "11111";
+   // echo ":q1111111";
     if( isset($actions[$_POST['action']]))
     {
         $user_array = $actions[$_POST['action']];
@@ -49,6 +49,7 @@ $actions = array(
             $id = NULL;
         }
 
+         //echo $id;
         echo $obj->$user_array['method']($id);
     }
 

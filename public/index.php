@@ -1,9 +1,9 @@
 <?php
 	include_once '../sys/core/init.inc.php';
-
-
-
-	$cal = new Calendar($dbo, "2010-01-01 12:00:00");
+   // var_dump($_POST);
+    $str = $_POST['year']."-".$_POST['month']."-01 00:00:00";
+   // echo $str;
+	$cal = new Calendar($dbo, $str);
 
 
 	/*if( is_object ($cal))
@@ -20,6 +20,19 @@
 	echo $cal->buildCalendar();
 ?>
 </div>
+<center> 
+<form action="index.php" method="post">
+<select name="year">
+    <option value="2010">2010</option>
+    <option value="2012">2012</option>
+</select>
+<select name="month">
+    <option value="01">1月</option>
+    <option value="03">3月</option>
+</select>
+<input type="submit" />
+</form>
+</center>
 <p>
 <?php echo isset($_SESSION['user'])? "Logged In!":"Logged Out!";?>
 </p>

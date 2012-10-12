@@ -215,11 +215,13 @@
 
 		public function displayEvent($id)
 		{
-			if( empty($id)){return NULL;}
+		
+		//	echo $id;
+            if( empty($id)){return NULL;}
 
 			$id = preg_replace('/[^0-9]/', '', $id);
 
-			//echo $id;
+		//	echo $id;
 
 			$event = $this->_loadEventById($id);
 
@@ -342,7 +344,13 @@ HTML;
         $title = addslashes($_POST['event_title']);
         //echo $title."\n";
         $desc = addslashes($_POST['event_description']);
-        
+       
+        ///日期验证
+        if( !$this->_validDate($start) ||  !$this->_validDate($end) )
+        {
+            return "Invalid date format! Use YYYY-MM-DD HH:MM:SS";
+        }
+
         if( empty($_POST['event_id']))
         {
             $sql = "INSERT INTO cal
@@ -377,7 +385,10 @@ HTML;
             $stmt->bindParam(":end",$end, PDO::PARAM_STR);
             $stmt->execute();
             $stmt->closeCursor();
+            //echo  $this->db->lastInsertId();
+
             return $this->db->lastInsertId();
+          //  return 1;
         }
         catch(Exception $e)
         {
@@ -502,6 +513,19 @@ ADMIN_OPTIONS;
         {
             return NULL;
         }
+    }
+
+    //验证日期字符串
+    private function _validDate($date)
+    {
+        $pattern = "/^(\d{4}(-\d{2}){2} (\d{2})(:\d{2}){2})$/";
+            
+    //这里对于分组模式匹配的 要搞明白{} 和() 的含义
+        //echo $date."<br/ >";
+        //$date ="2010-01-01 12:22:22";
+        echo preg_match($pattern, $date);
+      //  exit;
+        return preg_match($pattern, $date) == 1 ? TRUE : FALSE;
     }
     
 }

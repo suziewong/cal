@@ -53,7 +53,8 @@ jQuery(function($){
             },
             //保存之后将新活动添加到日历上
             "addevent" : function(data,formData){
-               // 将查询字符串转换为一个对象
+             // alert(data);
+              // 将查询字符串转换为一个对象
                 var entry = fx.deserialize(formData);
                 //为当前月份生成一个Date对象
                 cal = new Date(NaN),
@@ -77,7 +78,7 @@ jQuery(function($){
                     var day = String(event.getDate()+1);
                     day = day.length==1? "0"+day:day;
                     // bug  这里感觉有bug！！！！
-                    
+                //    alert(data);
                     $("<a>")
                         .hide()
                         .attr("href","view.php?event_id="+data)
@@ -117,8 +118,11 @@ jQuery(function($){
                 return decodeURIComponent(converted);
             } 
         };
+    $.fn.dateZoom.defaults.fontsize = "15px";
+
     //点击标题
-    $("li>a").live("click",function(event){
+    $("li>a").dateZoom()
+             .live("click",function(event){
         //1.阻止链接载入view.php
         event.preventDefault();
         //2.给被点击的活动添加标识激活状态class
@@ -161,12 +165,14 @@ jQuery(function($){
     });
 
     ///在一个模态窗口显示修改表单
-    $(".admin-options form,.admin").live("click",function(event){
+    $(".admin-options form,a.admin").live("click",function(event){
+   // $(".admin").live("click",function(event){
        //阻止表单提交
        event.preventDefault();
        //载入用于ajax请求的action
        var action = $(event.target).attr("name") || "edit_event";
-
+        
+       // alert(action);
        //将input元素中的event_id保存到变量id中
        id = $(event.target)
                 .siblings("input[name=event_id]")
@@ -180,7 +186,7 @@ jQuery(function($){
             url: processFile,
             data: "action="+action+id,
             success: function(data){
-                //
+              //  alert(data);
                 var form = $(data).hide(),
                 //确保模态窗口存在
                 modal = fx.initModal()
@@ -208,6 +214,9 @@ jQuery(function($){
             submitVal = $(this).val(),
         //romove变量负责确定这个活动是否需要被删除
             remove = false;
+        
+            start = $(this).siblings("[name=event_start]").val(),
+            end   = $(this).siblings("[name=event_end]").val();
         //若是删除表单，则追加一个值
         if( $(this).attr("name")=="confirm_delete")
         {
@@ -219,6 +228,18 @@ jQuery(function($){
             }
         }
             // console.log(formData);
+            //
+       // 如果是创建和修改活动，检查日期是否有效
+        if( $(this).siblings("[name=action]").val() == "event_edit")
+        {
+           // alert( !validDate(start) || !validDate(end))
+            if( !$.validDate(start) || !$.validDate(end))
+            {
+                alert("Valid dates only! (YYYY-MM-DD HH:MM:SS)");
+                return false;
+            }
+           
+        }
        // 将表单数据送往处理程序
        $.ajax({
             type: "POST",
@@ -234,6 +255,10 @@ jQuery(function($){
                 //如果是新的活动，将它添加到日历
                 if( $("[name=event_id]").val().length==0 && remove===false )
                 {
+                   // alert(formData);
+                   // 这里有个bug！ 多返回一个11
+                    data = String(data);
+                    data = data.substring(2,4);
                     fx.addevent(data, formData);
                 }
             }
