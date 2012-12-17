@@ -4,7 +4,7 @@
 
 	$C['DB_HOST'] = 'localhost';
 	$C['DB_USER'] = 'root';
-	$C['DB_PASS'] = '027267';
+	$C['DB_PASS'] = '';
 
 	$C['DB_NAME'] = 'cal';
 	
